@@ -1,0 +1,73 @@
+------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Chung\Desktop\EVS\Median\Low\median_low.log
+  log type:  text
+ opened on:  28 Jan 2025, 09:47:09
+
+. 
+. *load the main data
+. use "$path\median_low.dta", clear 
+
+. 
+. *set seed
+. set seed 123
+
+. 
+. *define the local variables for the estimation
+. local demographic_vars urban EF29 monthly age edu
+
+. local median_prices med_P1 med_P2 med_P3 med_P4 med_P5 med_P6 med_P7 med_P8 med_P9 med_P10 med_P11 med_P12 med_P
+> 13 med_P14 med_P15
+
+. 
+. *estimate the QUAIDSCE model
+. quaidsce W1-W15, anot(2) prices(`median_prices') expenditure(expfd) demographics(`demographic_vars') nolog reps(
+> 50)
+--------------------------------------------------------------------------------
+Parallel Computing with Stata
+Child processes: 15
+pll_id         : uq8trnsm15
+Running at     : C:\Users\Chung\Desktop\EVS\PCA
+Randtype       : datetime
+Waiting for the child processes to finish...
+The user pressed -break-. Trying to stop the child processes...
+Not able to remove temp dir
+child process 0014 Exited with error -1- while running the command/dofile (view log)...
+Not able to remove temp dir
+child process 0015 Exited with error -1- while running the command/dofile (view log)...
+Not able to remove temp dir
+child process 0001 Exited with error -1- while running the command/dofile (view log)...
+child process 0002 Exited with error -1- while running the command/dofile (view log)...
+child process 0003 Exited with error -1- while running the command/dofile (view log)...
+child process 0004 Exited with error -1- while running the command/dofile (view log)...
+child process 0005 Exited with error -1- while running the command/dofile (view log)...
+child process 0006 Exited with error -1- while running the command/dofile (view log)...
+child process 0007 Exited with error -1- while running the command/dofile (view log)...
+child process 0008 Exited with error -1- while running the command/dofile (view log)...
+child process 0009 Exited with error -1- while running the command/dofile (view log)...
+child process 0010 Exited with error -1- while running the command/dofile (view log)...
+child process 0011 Exited with error -1- while running the command/dofile (view log)...
+child process 0012 Exited with error -1- while running the command/dofile (view log)...
+child process 0013 Exited with error -1- while running the command/dofile (view log)...
+--------------------------------------------------------------------------------
+Enter -parallel printlog #- to checkout logfiles.
+--------------------------------------------------------------------------------
+15 child processes encountered errors. Throwing last error.
+--Break--
+r(1);
+
+end of do-file
+
+--Break--
+r(1);
+
+. do "C:\Users\Chung\AppData\Local\Temp\7\STD28e8_000000.tmp"
+
+. **# Set up #1
+. 
+. *clean Stata session
+. clear all
+
+. 
+. *close any existing logs
+. capture log close

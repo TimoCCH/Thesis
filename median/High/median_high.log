@@ -1,0 +1,792 @@
+------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Chung\Desktop\EVS\Median\High\median_high.log
+  log type:  text
+ opened on:  28 Jan 2025, 09:52:59
+
+. 
+. *load the main data
+. use "$path\median_high.dta", clear 
+
+. 
+. *set seed
+. set seed 123
+
+. 
+. *1. create binary variables indicating whether each good is consumed
+. local share_list 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+
+. foreach a of local share_list {
+  2.     gen pos_`a' = (W`a' > 0)
+  3. }
+
+. 
+. *2. estimate probit models and check for perfect prediction
+. local share_list 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+
+. foreach a of local share_list {
+  2.     probit pos_`a'  urban EF7 EF29 monthly age edu employ
+  3.         * Check for perfect prediction
+.     estat classification
+  4.         * Predict consumption probabilities
+.     predict p_consume_`a', pr 
+  5. }
+
+Iteration 0:  Log likelihood = -467.48962  
+Iteration 1:  Log likelihood = -420.55021  
+Iteration 2:  Log likelihood = -415.59921  
+Iteration 3:  Log likelihood = -415.54151  
+Iteration 4:  Log likelihood = -415.54147  
+Iteration 5:  Log likelihood = -415.54147  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 103.90
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -415.54147                             Pseudo R2     = 0.1111
+
+------------------------------------------------------------------------------
+       pos_1 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |  -.4034956   .1492507    -2.70   0.007    -.6960217   -.1109696
+         EF7 |   .4729166   .1276483     3.70   0.000     .2227306    .7231026
+        EF29 |   .4820265   .1790143     2.69   0.007      .131165    .8328881
+     monthly |  -6.34e-06   .0000144    -0.44   0.661    -.0000347     .000022
+         age |   .0072528   .0043338     1.67   0.094    -.0012413    .0157469
+         edu |   .0928421   .0953244     0.97   0.330    -.0939903    .2796745
+      employ |  -.5878249   .2488099    -2.36   0.018    -1.075483   -.1001664
+       _cons |   .9042978   .3684771     2.45   0.014      .182096      1.6265
+------------------------------------------------------------------------------
+
+Probit model for pos_1
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      2408           115  |       2523
+     -     |         0             0  |          0
+-----------+--------------------------+-----------
+   Total   |      2408           115  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_1 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)  100.00%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   95.44%
+Negative predictive value       Pr(~D| -)       .%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.00%
+False + rate for classified +   Pr(~D| +)    4.56%
+False - rate for classified -   Pr( D| -)       .%
+--------------------------------------------------
+Correctly classified                        95.44%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -1179.9646  
+Iteration 1:  Log likelihood = -1100.7383  
+Iteration 2:  Log likelihood = -1098.8976  
+Iteration 3:  Log likelihood = -1098.8929  
+Iteration 4:  Log likelihood = -1098.8929  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 162.14
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -1098.8929                             Pseudo R2     = 0.0687
+
+------------------------------------------------------------------------------
+       pos_2 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |  -.0295675   .0781338    -0.38   0.705     -.182707    .1235719
+         EF7 |   .4934652   .0767807     6.43   0.000     .3429777    .6439527
+        EF29 |   .0283677   .0925508     0.31   0.759    -.1530285     .209764
+     monthly |   4.97e-06   .0000108     0.46   0.646    -.0000162    .0000262
+         age |   .0051227   .0028403     1.80   0.071    -.0004442    .0106896
+         edu |   .1739528    .061627     2.82   0.005     .0531661    .2947395
+      employ |  -.1004027   .1467059    -0.68   0.494     -.387941    .1871355
+       _cons |    -.20162   .2354974    -0.86   0.392    -.6631864    .2599463
+------------------------------------------------------------------------------
+
+Probit model for pos_2
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      2075           448  |       2523
+     -     |         0             0  |          0
+-----------+--------------------------+-----------
+   Total   |      2075           448  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_2 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)  100.00%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   82.24%
+Negative predictive value       Pr(~D| -)       .%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.00%
+False + rate for classified +   Pr(~D| +)   17.76%
+False - rate for classified -   Pr( D| -)       .%
+--------------------------------------------------
+Correctly classified                        82.24%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -398.22073  
+Iteration 1:  Log likelihood = -352.56682  
+Iteration 2:  Log likelihood = -344.64634  
+Iteration 3:  Log likelihood = -344.53651  
+Iteration 4:  Log likelihood = -344.53646  
+Iteration 5:  Log likelihood = -344.53646  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 107.37
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -344.53646                             Pseudo R2     = 0.1348
+
+------------------------------------------------------------------------------
+       pos_3 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |  -.2312455   .1485087    -1.56   0.119    -.5223172    .0598262
+         EF7 |   .7723627   .1818501     4.25   0.000      .415943    1.128782
+        EF29 |   .2761966   .2332261     1.18   0.236    -.1809181    .7333113
+     monthly |   6.87e-06   .0000222     0.31   0.757    -.0000365    .0000503
+         age |   .0007507   .0047525     0.16   0.874    -.0085639    .0100654
+         edu |   .0610282   .1038148     0.59   0.557    -.1424451    .2645015
+      employ |  -.5199363   .3005068    -1.73   0.084    -1.108919    .0690461
+       _cons |   .9230128   .4129642     2.24   0.025     .1136178    1.732408
+------------------------------------------------------------------------------
+Note: 0 failures and 1 success completely determined.
+
+Probit model for pos_3
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      2430            93  |       2523
+     -     |         0             0  |          0
+-----------+--------------------------+-----------
+   Total   |      2430            93  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_3 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)  100.00%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   96.31%
+Negative predictive value       Pr(~D| -)       .%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.00%
+False + rate for classified +   Pr(~D| +)    3.69%
+False - rate for classified -   Pr( D| -)       .%
+--------------------------------------------------
+Correctly classified                        96.31%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -1084.6234  
+Iteration 1:  Log likelihood = -1019.0286  
+Iteration 2:  Log likelihood = -1017.3803  
+Iteration 3:  Log likelihood = -1017.3753  
+Iteration 4:  Log likelihood = -1017.3753  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 134.50
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -1017.3753                             Pseudo R2     = 0.0620
+
+------------------------------------------------------------------------------
+       pos_4 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |  -.0612776   .0813118    -0.75   0.451    -.2206458    .0980905
+         EF7 |    .514084   .0772654     6.65   0.000     .3626466    .6655214
+        EF29 |   .0931914   .0972081     0.96   0.338     -.097333    .2837159
+     monthly |  -.0000111   8.96e-06    -1.24   0.216    -.0000286    6.49e-06
+         age |  -.0083179   .0030242    -2.75   0.006    -.0142451   -.0023907
+         edu |   .0536851   .0638125     0.84   0.400    -.0713851    .1787553
+      employ |  -.2821091    .153681    -1.84   0.066    -.5833182    .0191001
+       _cons |   .8507555    .250012     3.40   0.001     .3607409     1.34077
+------------------------------------------------------------------------------
+
+Probit model for pos_4
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      2134           389  |       2523
+     -     |         0             0  |          0
+-----------+--------------------------+-----------
+   Total   |      2134           389  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_4 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)  100.00%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   84.58%
+Negative predictive value       Pr(~D| -)       .%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.00%
+False + rate for classified +   Pr(~D| +)   15.42%
+False - rate for classified -   Pr( D| -)       .%
+--------------------------------------------------
+Correctly classified                        84.58%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -1687.2648  
+Iteration 1:  Log likelihood = -1596.0483  
+Iteration 2:  Log likelihood = -1595.8141  
+Iteration 3:  Log likelihood = -1595.8141  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 182.90
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -1595.8141                             Pseudo R2     = 0.0542
+
+------------------------------------------------------------------------------
+       pos_5 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |   .0283128   .0656189     0.43   0.666    -.1002977    .1569234
+         EF7 |   .3499574   .0517265     6.77   0.000     .2485753    .4513395
+        EF29 |   .1297646   .0685583     1.89   0.058    -.0046072    .2641364
+     monthly |  -5.84e-06   7.54e-06    -0.78   0.438    -.0000206    8.93e-06
+         age |   .0103263   .0024769     4.17   0.000     .0054716     .015181
+         edu |   .1013932   .0529629     1.91   0.056    -.0024122    .2051986
+      employ |  -.2928557   .1169838    -2.50   0.012    -.5221398   -.0635717
+       _cons |  -.8562492   .2011007    -4.26   0.000    -1.250399   -.4620991
+------------------------------------------------------------------------------
+
+Probit model for pos_5
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      1274           596  |       1870
+     -     |       265           388  |        653
+-----------+--------------------------+-----------
+   Total   |      1539           984  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_5 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)   82.78%
+Specificity                     Pr( -|~D)   39.43%
+Positive predictive value       Pr( D| +)   68.13%
+Negative predictive value       Pr(~D| -)   59.42%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)   60.57%
+False - rate for true D         Pr( -| D)   17.22%
+False + rate for classified +   Pr(~D| +)   31.87%
+False - rate for classified -   Pr( D| -)   40.58%
+--------------------------------------------------
+Correctly classified                        65.87%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -1719.0121  
+Iteration 1:  Log likelihood = -1632.9334  
+Iteration 2:  Log likelihood =  -1632.634  
+Iteration 3:  Log likelihood =  -1632.634  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 172.76
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -1632.634                              Pseudo R2     = 0.0502
+
+------------------------------------------------------------------------------
+       pos_6 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |   .1084968   .0649875     1.67   0.095    -.0188764      .23587
+         EF7 |   .3770171   .0525679     7.17   0.000      .273986    .4800482
+        EF29 |    .044552   .0685826     0.65   0.516    -.0898675    .1789715
+     monthly |  -4.71e-06   7.49e-06    -0.63   0.529    -.0000194    9.97e-06
+         age |  -.0126761    .002492    -5.09   0.000    -.0175603   -.0077918
+         edu |  -.2115931   .0528729    -4.00   0.000     -.315222   -.1079641
+      employ |  -.1163438   .1168626    -1.00   0.319    -.3453903    .1127026
+       _cons |   .3460757   .2009423     1.72   0.085     -.047764    .7399155
+------------------------------------------------------------------------------
+
+Probit model for pos_6
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      1150           670  |       1820
+     -     |       305           398  |        703
+-----------+--------------------------+-----------
+   Total   |      1455          1068  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_6 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)   79.04%
+Specificity                     Pr( -|~D)   37.27%
+Positive predictive value       Pr( D| +)   63.19%
+Negative predictive value       Pr(~D| -)   56.61%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)   62.73%
+False - rate for true D         Pr( -| D)   20.96%
+False + rate for classified +   Pr(~D| +)   36.81%
+False - rate for classified -   Pr( D| -)   43.39%
+--------------------------------------------------
+Correctly classified                        61.36%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -1374.5908  
+Iteration 1:  Log likelihood = -1291.6738  
+Iteration 2:  Log likelihood =  -1291.013  
+Iteration 3:  Log likelihood =  -1291.013  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 167.16
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -1291.013                              Pseudo R2     = 0.0608
+
+------------------------------------------------------------------------------
+       pos_7 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |  -.0324164   .0729132    -0.44   0.657    -.1753236    .1104908
+         EF7 |   .4276349   .0602576     7.10   0.000     .3095322    .5457375
+        EF29 |   .1955013   .0806972     2.42   0.015     .0373376     .353665
+     monthly |  -7.15e-06   8.21e-06    -0.87   0.384    -.0000232    8.95e-06
+         age |   .0034094   .0026904     1.27   0.205    -.0018637    .0086825
+         edu |  -.1772101   .0585314    -3.03   0.002    -.2919296   -.0624906
+      employ |  -.2748026   .1320409    -2.08   0.037    -.5335979   -.0160073
+       _cons |   .0000602    .219555     0.00   1.000    -.4302598    .4303801
+------------------------------------------------------------------------------
+
+Probit model for pos_7
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      1930           592  |       2522
+     -     |         1             0  |          1
+-----------+--------------------------+-----------
+   Total   |      1931           592  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_7 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)   99.95%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   76.53%
+Negative predictive value       Pr(~D| -)    0.00%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.05%
+False + rate for classified +   Pr(~D| +)   23.47%
+False - rate for classified -   Pr( D| -)  100.00%
+--------------------------------------------------
+Correctly classified                        76.50%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -503.35372  
+Iteration 1:  Log likelihood = -458.48078  
+Iteration 2:  Log likelihood = -455.68404  
+Iteration 3:  Log likelihood = -455.67911  
+Iteration 4:  Log likelihood = -455.67911  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    =  95.35
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -455.67911                             Pseudo R2     = 0.0947
+
+------------------------------------------------------------------------------
+       pos_8 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |  -.1484682   .1250388    -1.19   0.235    -.3935398    .0966033
+         EF7 |   .4033933   .0982024     4.11   0.000     .2109201    .5958664
+        EF29 |   .3907367   .1422499     2.75   0.006      .111932    .6695415
+     monthly |  -.0000216   .0000102    -2.12   0.034    -.0000415   -1.60e-06
+         age |   .0143513   .0039943     3.59   0.000     .0065226      .02218
+         edu |  -.1374805   .0927541    -1.48   0.138    -.3192753    .0443142
+      employ |  -.4683052   .2191199    -2.14   0.033    -.8977723   -.0388382
+       _cons |   .5547946    .332158     1.67   0.095    -.0962231    1.205812
+------------------------------------------------------------------------------
+
+Probit model for pos_8
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      2396           127  |       2523
+     -     |         0             0  |          0
+-----------+--------------------------+-----------
+   Total   |      2396           127  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_8 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)  100.00%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   94.97%
+Negative predictive value       Pr(~D| -)       .%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.00%
+False + rate for classified +   Pr(~D| +)    5.03%
+False - rate for classified -   Pr( D| -)       .%
+--------------------------------------------------
+Correctly classified                        94.97%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -1607.9967  
+Iteration 1:  Log likelihood =  -1564.179  
+Iteration 2:  Log likelihood = -1564.1127  
+Iteration 3:  Log likelihood = -1564.1127  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    =  87.77
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -1564.1127                             Pseudo R2     = 0.0273
+
+------------------------------------------------------------------------------
+       pos_9 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |   .1330195   .0669936     1.99   0.047     .0017145    .2643245
+         EF7 |   .1680082   .0481698     3.49   0.000     .0735972    .2624192
+        EF29 |    .099402   .0656744     1.51   0.130    -.0293174    .2281214
+     monthly |   6.16e-06   7.21e-06     0.85   0.393    -7.98e-06    .0000203
+         age |   .0098771   .0025553     3.87   0.000     .0048688    .0148854
+         edu |   .1025091   .0536972     1.91   0.056    -.0027355    .2077538
+      employ |  -.1742718    .115727    -1.51   0.132    -.4010925    .0525489
+       _cons |  -1.465059   .2068529    -7.08   0.000    -1.870483   -1.059634
+------------------------------------------------------------------------------
+
+Probit model for pos_9
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |        26            44  |         70
+     -     |       818          1635  |       2453
+-----------+--------------------------+-----------
+   Total   |       844          1679  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_9 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)    3.08%
+Specificity                     Pr( -|~D)   97.38%
+Positive predictive value       Pr( D| +)   37.14%
+Negative predictive value       Pr(~D| -)   66.65%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)    2.62%
+False - rate for true D         Pr( -| D)   96.92%
+False + rate for classified +   Pr(~D| +)   62.86%
+False - rate for classified -   Pr( D| -)   33.35%
+--------------------------------------------------
+Correctly classified                        65.83%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -1594.6059  
+Iteration 1:  Log likelihood = -1546.0382  
+Iteration 2:  Log likelihood = -1545.9609  
+Iteration 3:  Log likelihood = -1545.9609  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    =  97.29
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -1545.9609                             Pseudo R2     = 0.0305
+
+------------------------------------------------------------------------------
+      pos_10 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |  -.0448658   .0671486    -0.67   0.504    -.1764748    .0867431
+         EF7 |   .2540607   .0517179     4.91   0.000     .1526956    .3554259
+        EF29 |   .1582612   .0697723     2.27   0.023     .0215101    .2950123
+     monthly |  -.0000185   7.23e-06    -2.55   0.011    -.0000326   -4.28e-06
+         age |   .0110072   .0024936     4.41   0.000     .0061199    .0158945
+         edu |   .0566684   .0537032     1.06   0.291    -.0485879    .1619247
+      employ |  -.1594743   .1199304    -1.33   0.184    -.3945336    .0755851
+       _cons |  -.5216468    .203211    -2.57   0.010     -.919933   -.1233606
+------------------------------------------------------------------------------
+
+Probit model for pos_10
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      1652           784  |       2436
+     -     |        46            41  |         87
+-----------+--------------------------+-----------
+   Total   |      1698           825  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_10 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)   97.29%
+Specificity                     Pr( -|~D)    4.97%
+Positive predictive value       Pr( D| +)   67.82%
+Negative predictive value       Pr(~D| -)   47.13%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)   95.03%
+False - rate for true D         Pr( -| D)    2.71%
+False + rate for classified +   Pr(~D| +)   32.18%
+False - rate for classified -   Pr( D| -)   52.87%
+--------------------------------------------------
+Correctly classified                        67.10%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -1275.4375  
+Iteration 1:  Log likelihood = -1208.0804  
+Iteration 2:  Log likelihood = -1207.3271  
+Iteration 3:  Log likelihood = -1207.3265  
+Iteration 4:  Log likelihood = -1207.3265  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 136.22
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -1207.3265                             Pseudo R2     = 0.0534
+
+------------------------------------------------------------------------------
+      pos_11 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |   .0270425    .074133     0.36   0.715    -.1182554    .1723404
+         EF7 |   .3995656   .0630404     6.34   0.000     .2760087    .5231225
+        EF29 |   .0722935   .0819039     0.88   0.377    -.0882351    .2328221
+     monthly |  -7.96e-06   8.46e-06    -0.94   0.347    -.0000246    8.62e-06
+         age |   .0102811   .0027234     3.78   0.000     .0049434    .0156188
+         edu |  -.0676191   .0596524    -1.13   0.257    -.1845357    .0492974
+      employ |  -.1647165   .1354875    -1.22   0.224    -.4302671     .100834
+       _cons |  -.2755965    .223107    -1.24   0.217    -.7128782    .1616851
+------------------------------------------------------------------------------
+
+Probit model for pos_11
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      2009           514  |       2523
+     -     |         0             0  |          0
+-----------+--------------------------+-----------
+   Total   |      2009           514  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_11 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)  100.00%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   79.63%
+Negative predictive value       Pr(~D| -)       .%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.00%
+False + rate for classified +   Pr(~D| +)   20.37%
+False - rate for classified -   Pr( D| -)       .%
+--------------------------------------------------
+Correctly classified                        79.63%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -845.59449  
+Iteration 1:  Log likelihood = -793.08757  
+Iteration 2:  Log likelihood = -792.17005  
+Iteration 3:  Log likelihood = -792.16896  
+Iteration 4:  Log likelihood = -792.16896  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 106.85
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -792.16896                             Pseudo R2     = 0.0632
+
+------------------------------------------------------------------------------
+      pos_12 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |  -.0722847   .0919379    -0.79   0.432    -.2524796    .1079102
+         EF7 |   .2386447   .0765436     3.12   0.002     .0886221    .3886673
+        EF29 |   .2865089   .1025725     2.79   0.005     .0854706    .4875473
+     monthly |  -3.71e-06   .0000109    -0.34   0.733     -.000025    .0000176
+         age |   .0124636   .0031983     3.90   0.000     .0061951    .0187321
+         edu |   .0702664   .0709647     0.99   0.322    -.0688219    .2093547
+      employ |  -.4970156   .1678328    -2.96   0.003    -.8259618   -.1680694
+       _cons |   .3169285   .2644346     1.20   0.231    -.2013539    .8352109
+------------------------------------------------------------------------------
+
+Probit model for pos_12
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      2259           264  |       2523
+     -     |         0             0  |          0
+-----------+--------------------------+-----------
+   Total   |      2259           264  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_12 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)  100.00%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   89.54%
+Negative predictive value       Pr(~D| -)       .%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.00%
+False + rate for classified +   Pr(~D| +)   10.46%
+False - rate for classified -   Pr( D| -)       .%
+--------------------------------------------------
+Correctly classified                        89.54%
+--------------------------------------------------
+
+note: EF7 != 1 predicts success perfectly;
+      EF7 omitted and 1472 obs not used.
+
+note: employ omitted because of collinearity.
+Iteration 0:  Log likelihood = -31.728385  
+Iteration 1:  Log likelihood = -31.363594  
+Iteration 2:  Log likelihood = -31.220567  
+Iteration 3:  Log likelihood = -31.217624  
+Iteration 4:  Log likelihood = -31.217623  
+
+Probit regression                                       Number of obs =  1,051
+                                                        LR chi2(5)    =   1.02
+                                                        Prob > chi2   = 0.9608
+Log likelihood = -31.217623                             Pseudo R2     = 0.0161
+
+------------------------------------------------------------------------------
+      pos_13 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |   .0379211   .3982666     0.10   0.924    -.7426671    .8185092
+         EF7 |          0  (omitted)
+        EF29 |  -.1427214   .5351644    -0.27   0.790    -1.191624    .9061816
+     monthly |   .0001214   .0001777     0.68   0.494    -.0002268    .0004696
+         age |  -.0001137   .0152046    -0.01   0.994    -.0299142    .0296868
+         edu |  -.1618388   .3222866    -0.50   0.616    -.7935088    .4698313
+      employ |          0  (omitted)
+       _cons |   2.323708   1.263102     1.84   0.066    -.1519265    4.799342
+------------------------------------------------------------------------------
+Note: 0 failures and 2 successes completely determined.
+
+Probit model for pos_13
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      1046             5  |       1051
+     -     |         0             0  |          0
+-----------+--------------------------+-----------
+   Total   |      1046             5  |       1051
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_13 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)  100.00%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   99.52%
+Negative predictive value       Pr(~D| -)       .%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.00%
+False + rate for classified +   Pr(~D| +)    0.48%
+False - rate for classified -   Pr( D| -)       .%
+--------------------------------------------------
+Correctly classified                        99.52%
+--------------------------------------------------
+(1,472 missing values generated)
+
+Iteration 0:  Log likelihood = -241.64887  
+Iteration 1:  Log likelihood = -225.93351  
+Iteration 2:  Log likelihood = -223.97696  
+Iteration 3:  Log likelihood = -223.95524  
+Iteration 4:  Log likelihood = -223.95523  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    =  35.39
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -223.95523                             Pseudo R2     = 0.0732
+
+------------------------------------------------------------------------------
+      pos_14 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |  -.2331295   .1807831    -1.29   0.197    -.5874578    .1211989
+         EF7 |   .5662319   .1775213     3.19   0.001     .2182965    .9141673
+        EF29 |   .0912156   .2318227     0.39   0.694    -.3631485    .5455797
+     monthly |  -5.47e-06    .000018    -0.30   0.761    -.0000407    .0000298
+         age |  -.0063326   .0060386    -1.05   0.294     -.018168    .0055028
+         edu |   -.031548   .1254677    -0.25   0.801    -.2774601    .2143641
+      employ |   -.085324   .3230289    -0.26   0.792     -.718449    .5478011
+       _cons |   1.811466   .5006152     3.62   0.000     .8302781    2.792653
+------------------------------------------------------------------------------
+
+Probit model for pos_14
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      2474            49  |       2523
+     -     |         0             0  |          0
+-----------+--------------------------+-----------
+   Total   |      2474            49  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_14 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)  100.00%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   98.06%
+Negative predictive value       Pr(~D| -)       .%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.00%
+False + rate for classified +   Pr(~D| +)    1.94%
+False - rate for classified -   Pr( D| -)       .%
+--------------------------------------------------
+Correctly classified                        98.06%
+--------------------------------------------------
+
+Iteration 0:  Log likelihood = -1246.2667  
+Iteration 1:  Log likelihood = -1155.8253  
+Iteration 2:  Log likelihood = -1152.8075  
+Iteration 3:  Log likelihood = -1152.8009  
+Iteration 4:  Log likelihood = -1152.8009  
+
+Probit regression                                       Number of obs =  2,523
+                                                        LR chi2(7)    = 186.93
+                                                        Prob > chi2   = 0.0000
+Log likelihood = -1152.8009                             Pseudo R2     = 0.0750
+
+------------------------------------------------------------------------------
+      pos_15 | Coefficient  Std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       urban |   .0590259   .0749994     0.79   0.431    -.0879702     .206022
+         EF7 |   .6171173   .0761549     8.10   0.000     .4678564    .7663783
+        EF29 |  -.1156592    .091106    -1.27   0.204    -.2942237    .0629053
+     monthly |  -4.59e-06   8.72e-06    -0.53   0.599    -.0000217    .0000125
+         age |  -.0150905   .0030006    -5.03   0.000    -.0209716   -.0092095
+         edu |  -.0078053   .0609399    -0.13   0.898    -.1272452    .1116347
+      employ |   .0804602   .1444729     0.56   0.578    -.2027014    .3636219
+       _cons |   .7605392   .2428091     3.13   0.002     .2846422    1.236436
+------------------------------------------------------------------------------
+
+Probit model for pos_15
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |      2029           493  |       2522
+     -     |         1             0  |          1
+-----------+--------------------------+-----------
+   Total   |      2030           493  |       2523
+
+Classified + if predicted Pr(D) >= .5
+True D defined as pos_15 != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)   99.95%
+Specificity                     Pr( -|~D)    0.00%
+Positive predictive value       Pr( D| +)   80.45%
+Negative predictive value       Pr(~D| -)    0.00%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)  100.00%
+False - rate for true D         Pr( -| D)    0.05%
+False + rate for classified +   Pr(~D| +)   19.55%
+False - rate for classified -   Pr( D| -)  100.00%
+--------------------------------------------------
+Correctly classified                        80.42%
+--------------------------------------------------
+
+. 
+end of do-file
+
+. exit, clear
