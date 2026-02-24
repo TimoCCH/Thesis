@@ -1,0 +1,45 @@
+------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Chung\Desktop\EVS\PCA\Mid\pca_mid.log
+  log type:  text
+ opened on:  13 Feb 2025, 09:46:10
+
+. 
+. *load the main data
+. use "$path\pca_mid.dta", clear 
+
+. 
+. *set seed
+. set seed 123
+
+. 
+. *define the local variables for the estimation
+. local demographic_vars urban EF29 monthly age edu
+
+. local pca_prices pca_P1 pca_P2 pca_P3 pca_P4 pca_P5 pca_P6 pca_P7 pca_P8 pca_P9 pca_P10 pca_P11 pca_P12 pca_P13 
+> pca_P14 pca_P15
+
+. 
+. *estimate the QUAIDSCE model
+. quaidsce W1-W15, anot(2) prices(`pca_prices') expenditure(expfd) demographics(`demographic_vars') nolog reps(50)
+--------------------------------------------------------------------------------
+Parallel Computing with Stata
+Child processes: 6
+pll_id         : ni83k4dqw1
+Running at     : C:\Users\Chung\Desktop\EVS\PCA\Mid
+Randtype       : datetime
+Waiting for the child processes to finish...
+Couldn't remove all files.
+--Break--
+r(1);
+
+end of do-file
+
+--Break--
+r(1);
+
+. end
+command end is unrecognized
+r(199);
+
+. exit, clear
