@@ -1,0 +1,1095 @@
+------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Chung\Desktop\EVS\EVS_median.log
+  log type:  text
+ opened on:  26 Jan 2025, 23:27:07
+
+. 
+. *load the main data
+. use "$path\EVS_median.dta", clear 
+
+. 
+. *set seed
+. set seed 123
+
+. 
+. 
+. **# Handle missing price information  #2
+. 
+. *1. create a unique identifier for each region type combination
+. egen region_type = group(EF2 EF5), label
+
+. 
+. *2. define the list for all unit prices
+. local unitprice_list 58 60 61 62 63 64 65 69 75 76 77 80 84 85 86 88 89 90 91 92 93 94 95 96 97 98 99 100 101 10
+> 2 103 104 110 112 113 114 121 127 128 129 130 131 132 133 135 136 137 138 139 140 142 144 145 154 155 156 157 15
+> 8 159 160 161 162 163 164 166 167 168 169 170 171 172 173 174 177 178 179 180 181 182 183 184 185 186 187 188 18
+> 9 190 191 192 193 202 203 210
+
+. 
+. *3. combined loop to fill missing prices by hierarchical regional medians
+. quietly {
+
+. 
+. *4. drop the missing price information after cleaning (check if all prices are filled)
+. foreach a of local unitprice_list {
+  2.     capture confirm variable unitprice`a'
+  3.     
+.     * If unitprice`a' exists, drop observations where unitprice`a' is missing
+.     if _rc == 0 {
+  4.         quietly drop if unitprice`a' == .
+  5.     }
+  6. }
+
+. 
+. *5. drop the auxiliary variable
+. drop region_type
+
+. 
+. 
+. **# Quality-adjusted price #3
+. 
+. *1. generate an auxiliary variable 
+. 
+. *1.1 urban
+. gen urban = 1
+
+. replace urban = 0 if EF5 == 3
+(2,423 real changes made)
+
+. 
+. *1.2 seasons
+. gen spring = 0
+
+. replace spring = 1 if inrange(EF6, 1, 3)
+(2,482 real changes made)
+
+. 
+. gen summer = 0
+
+. replace summer = 1 if inrange(EF6, 4, 6)
+(2,504 real changes made)
+
+. 
+. gen autumn = 0
+
+. replace autumn = 1 if inrange(EF6, 7, 9)
+(2,672 real changes made)
+
+. 
+. gen winter = 0
+
+. replace winter = 1 if inrange(EF6, 10, 12)
+(2,693 real changes made)
+
+. 
+. *1.3 children
+. gen children = EF22 + EF23 + EF24 + EF25 + EF26
+
+. 
+. *1.4 net monthly income
+. gen monthly = EF30 / 3
+
+. 
+. *1.5 age
+. gen age = 2018 - EF8U3
+
+. 
+. *1.6 education
+. gen edu = 1
+
+. replace edu = 0 if EF8U8 == 0
+(6,543 real changes made)
+
+. 
+. *1.7 employment status
+. gen employ = 0
+
+. replace employ = 1 if inrange(EF8U9, 1, 9)
+(6,439 real changes made)
+
+. 
+. *2. define the list for all unit prices
+. local unitprice_list 58 60 61 62 63 64 65 69 75 76 77 80 84 85 86 88 89 90 91 92 93 94 95 96 97 98 99 100 101 10
+> 2 103 104 110 112 113 114 121 127 128 129 130 131 132 133 135 136 137 138 139 140 142 144 145 154 155 156 157 15
+> 8 159 160 161 162 163 164 166 167 168 169 170 171 172 173 174 177 178 179 180 181 182 183 184 185 186 187 188 18
+> 9 190 191 192 193 202 203 210
+
+. 
+. *3. run the hedonic price function
+. quietly {
+
+. 
+. 
+. **# Calculate category price #4
+. 
+. *1. initialize P1 to P15 to zero
+. local price_list 1/15
+
+. quietly {
+
+. 
+. *2. define the lists of variables
+. local fresh_fruits 154 155 156 157 158 159 160 161 162 163 164 165 177
+
+. local processed_fruits 166 167 168 169 170 171 172 173 174 175 176 210 213
+
+. local fresh_veg 178 179 180 181 182 183 184 185 186 187 188 189 190 191 207 208
+
+. local processed_veg 192 193 194 195 196 197 198 199 200 201 228
+
+. local fresh_potato 202
+
+. local potato_product 203 204 205 206
+
+. local fresh_meat 88 89 90 91 92 93 94 95 96 97
+
+. local processed_meat 98 99 100 101 102 103 104 105 106 107 108 109 110 111
+
+. local fresh_seafood 112 114 115 117
+
+. local processed_seafood 113 116 118 119 120 121 122 123 124 125
+
+. local eggs 142
+
+. local bread 62 63 64 65
+
+. local dairy_product 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 144 145
+
+. local wheat_product 60 61 66 67 68 69 70 71 72 73 74 75 76 77 78 79 86
+
+. local grain_product 58 59 80 84 85 87
+
+. 
+. *3.  define lists of categories and their target price variables
+. local category_lists fresh_fruits processed_fruits fresh_veg processed_veg fresh_potato potato_product fresh_mea
+> t processed_meat fresh_seafood processed_seafood eggs bread dairy_product wheat_product grain_product
+
+. 
+. local expenditure_list A_fresh_fruits A_processed_fruits A_fresh_veg A_processed_veg A_fresh_potato A_potato_pro
+> duct A_fresh_meat A_processed_meat A_fresh_seafood A_processed_seafood A_eggs A_bread A_dairy_product A_wheat_pr
+> oduct A_grain_product
+
+. 
+. local median_prices med_P1 med_P2 med_P3 med_P4 med_P5 med_P6 med_P7 med_P8 med_P9 med_P10 med_P11 med_P12 med_P
+> 13 med_P14 med_P15
+
+. 
+. local quality_adj_prices adj_P1 adj_P2 adj_P3 adj_P4 adj_P5 adj_P6 adj_P7 adj_P8 adj_P9 adj_P10 adj_P11 adj_P12 
+> adj_P13 adj_P14 adj_P15
+
+. 
+. *4. loop through each category to calculate category expenditure
+. quietly {
+
+. 
+. *5. loop through each category list and calculate expenditure shares
+. quietly {
+
+. 
+. *6. calculate median of each unit price and store in locals
+. quietly {
+
+. 
+. *7. loop through each category list and calculate the category price (normalized to one)
+. quietly {
+
+. 
+. *8. exponentiate to get the final aggregated category price
+. local price_list 1/15
+
+. foreach a of numlist `price_list' {
+  2.         quietly replace med_P`a' = exp(med_P`a')
+  3. }
+
+. 
+. *9. calculate median of each quality-adjusted unit price and store in locals
+. quietly {
+
+. 
+. *10. loop through each category list and calculate the category price (normalized to one)
+. quietly {
+
+. 
+. *11. exponentiate to get the final aggregated category price
+. local price_list 1/15
+
+. foreach a of numlist `price_list' {
+  2.         quietly replace adj_P`a' = exp(adj_P`a')
+  3. }
+
+. 
+. *12. remove outliers
+. 
+. *12.1 create a temporary variable to mark outliers for all variables
+. gen is_outlier_med = 0
+
+. gen is_outlier_adj = 0
+
+. 
+. *12.2 loop to mark outliers for median prices
+. local price_list 1/15
+
+. quietly { 
+
+. 
+. *12.3 loop to mark outliers for adjusted prices
+. local price_list 1/15
+
+. quietly {
+
+. 
+. *12.4 drop all observations marked as outliers
+. drop if is_outlier_med == 1 & is_outlier_adj == 1
+(254 observations deleted)
+
+. 
+. *12.5 drop the temporary variable
+. drop is_outlier_med is_outlier_adj
+
+. 
+. 
+. **# Estimate the demand system #5
+. 
+. *1. initialize total food expenditure to zero
+. gen expfd = 0
+
+. 
+. *2. calculate the total food expenditure
+. local expenditure_list A_fresh_fruits A_processed_fruits A_fresh_veg A_processed_veg A_fresh_potato A_potato_pro
+> duct A_fresh_meat A_processed_meat A_fresh_seafood A_processed_seafood A_eggs A_bread A_dairy_product A_wheat_pr
+> oduct A_grain_product
+
+. foreach a of local expenditure_list {
+  2.     quietly replace expfd = expfd + `a'
+  3. }
+
+. 
+. *3. drop any observations with zero expfd
+. quietly count if expfd == 0
+
+. if r(N) > 0 {
+.     drop if expfd == 0
+(3 observations deleted)
+. }
+
+. else {
+.     display "No observations with expfd == 0."
+. }
+
+. 
+. *4. loop through each category to generate expenditure shares
+. local share_var W1 W2 W3 W4 W5 W6 W7 W8 W9 W10 W11 W12 W13 W14 W15
+
+. local i = 1
+
+. foreach share of local share_var {
+  2.     local numerator : word `i' of `expenditure_list'
+  3.     quietly gen `share' = `numerator' / expfd
+  4.     local i = `i' + 1
+  5. }
+
+. 
+. *5. income level comparison
+. 
+. *5.1 generate per-capita income
+. gen per_capita = monthly / EF7
+
+. 
+. *5.2 calculate the 25th and 75th percentiles of per_capita
+. summarize per_capita, detail
+
+                         per_capita
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     510.6667      -593.6667
+ 5%     731.8333      -593.6667
+10%          878      -593.6667       Obs              10,094
+25%         1220      -593.6667       Sum of wgt.      10,094
+
+50%     1767.417                      Mean           2063.928
+                        Largest       Std. dev.      1522.544
+75%     2528.333       29816.17
+90%       3462.5       31748.67       Variance        2318140
+95%     4208.333       32613.33       Skewness       9.975021
+99%     7103.667       59632.33       Kurtosis       267.4011
+
+. local p25 = r(p25)  // 25th percentile
+
+. local p75 = r(p75)  // 75th percentile
+
+. 
+. *5.3 generate the dummies based on the quartiles
+. gen low = per_capita < `p25'
+
+. gen mid = per_capita >= `p25' & per_capita <= `p75'
+
+. gen high = per_capita > `p75'
+
+. 
+. *6. sample statistics
+. 
+. *6.1 regression variables
+. sum urban spring summer autumn winter EF7 children EF29 monthly age edu employ
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+       urban |     10,094    .7653061    .4238283          0          1
+      spring |     10,094    .2407371    .4275522          0          1
+      summer |     10,094    .2426194     .428688          0          1
+      autumn |     10,094    .2573806    .4372125          0          1
+      winter |     10,094    .2592629    .4382519          0          1
+-------------+---------------------------------------------------------
+         EF7 |     10,094    2.108579    1.095146          1          8
+    children |     10,094    .3620963    .7607702          0          6
+        EF29 |     10,094    .9978205    .8729877          0          4
+     monthly |     10,094    4053.009    3019.408  -593.6667   59632.33
+         age |     10,094    52.82316    16.26251         18         94
+-------------+---------------------------------------------------------
+         edu |     10,094    .3668516    .4819694          0          1
+      employ |     10,094    .6212602    .4850972          0          1
+
+. tab EF2
+
+            Bundesland |      Freq.     Percent        Cum.
+-----------------------+-----------------------------------
+    Schleswig-Holstein |        388        3.84        3.84
+               Hamburg |        252        2.50        6.34
+         Niedersachsen |        873        8.65       14.99
+                Bremen |        115        1.14       16.13
+   Nordrhein-Westfalen |      1,906       18.88       35.01
+                Hessen |        904        8.96       43.97
+       Rheinland-Pfalz |        517        5.12       49.09
+     Baden-Württemberg |      1,110       11.00       60.09
+                Bayern |      1,470       14.56       74.65
+              Saarland |        117        1.16       75.81
+                Berlin |        385        3.81       79.62
+           Brandenburg |        319        3.16       82.78
+Mecklenburg-Vorpommern |        315        3.12       85.90
+               Sachsen |        710        7.03       92.94
+        Sachsen-Anhalt |        408        4.04       96.98
+             Thüringen |        305        3.02      100.00
+-----------------------+-----------------------------------
+                 Total |     10,094      100.00
+
+. tab EF8U2
+
+ Geschlecht |
+ (Person 1) |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   männlich |      6,132       60.75       60.75
+   weiblich |      3,962       39.25      100.00
+------------+-----------------------------------
+      Total |     10,094      100.00
+
+. tab EF8U4
+
+               Familienstand (Person 1) |      Freq.     Percent        Cum.
+----------------------------------------+-----------------------------------
+                                  ledig |      2,860       28.33       28.33
+                            verheiratet |      5,095       50.48       78.81
+                              verwitwet |        524        5.19       84.00
+                             geschieden |      1,347       13.34       97.34
+                dauernd getrennt lebend |        245        2.43       99.77
+eingetragene Lebenspartnerschaft (gleic |         18        0.18       99.95
+eingetragene Lebenspartnerschaft aufgeh |          5        0.05      100.00
+----------------------------------------+-----------------------------------
+                                  Total |     10,094      100.00
+
+. 
+. *6.2 median prices
+. local price_list 1/15
+
+. display "=== Median Prices Summary ==="
+=== Median Prices Summary ===
+
+. foreach a of numlist `price_list' {
+  2.     sum med_P`a'
+  3. }
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      med_P1 |     10,094    .9959535     .125726   .4579416    1.63407
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      med_P2 |     10,094    .9947278    .1260659   .5705917   1.641632
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      med_P3 |     10,094    1.021085    .2004421   .4609051    2.15808
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      med_P4 |     10,094     1.00032    .0480564   .7797733   1.251391
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      med_P5 |     10,094     1.05062    .4941356    .159799   4.371859
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      med_P6 |     10,094    1.006161    .0608039   .7537166   1.395188
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      med_P7 |     10,094    1.045488    .2315783   .4349805   2.530873
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      med_P8 |     10,094    1.015703    .2128618   .3827642     2.1802
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      med_P9 |     10,094     1.00353    .1347211   .3531589   1.753273
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     med_P10 |     10,094    1.002931    .0462309    .760113   1.255353
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     med_P11 |     10,094    1.031847    .3703204   .2279635   2.963526
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     med_P12 |     10,094     1.01018    .2670955    .312993   2.540175
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     med_P13 |     10,094    1.024796    .1656943   .5476235   1.925591
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     med_P14 |     10,094    1.008301     .027026   .8738812   1.149857
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     med_P15 |     10,094    1.031102    .2571066   .3642617   2.532724
+
+. 
+. *6.3 quality-adjusted prices
+. local price_list 1/15
+
+. display "=== Quality-adjusted Median Prices Summary ==="
+=== Quality-adjusted Median Prices Summary ===
+
+. foreach a of numlist `price_list' {
+  2.     sum adj_P`a'
+  3. }
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      adj_P1 |     10,094    1.011731    .1186326   .4604952   1.655469
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      adj_P2 |     10,094    .9987552    .1180711   .5492083    1.64083
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      adj_P3 |     10,094     1.02509    .1914559   .4554095   2.047766
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      adj_P4 |     10,094    1.003626    .0460479   .8001688   1.278028
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      adj_P5 |     10,094    1.100325    .5026207    .199824   5.697068
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      adj_P6 |     10,094    1.002404    .0585975    .711812   1.366863
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      adj_P7 |     10,094    1.023181    .2044916   .3892392   2.199645
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      adj_P8 |     10,094    1.007311    .1993382   .3531588   2.126472
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      adj_P9 |     10,094     1.00124    .1243339   .3237697   1.807421
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     adj_P10 |     10,094    1.002488    .0429948   .7507596   1.244205
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     adj_P11 |     10,094    1.029334    .3495375   .2284426   2.922268
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     adj_P12 |     10,094    1.010584    .2429269   .3029455   2.508165
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     adj_P13 |     10,094    1.021535    .1574676   .5675992   1.859104
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     adj_P14 |     10,094    1.004567    .0253774   .8904584   1.147539
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     adj_P15 |     10,094    1.039322    .2434671   .4251164   2.544999
+
+. 
+. *6.4 expenditure
+. local expenditure_list A_fresh_fruits A_processed_fruits A_fresh_veg A_processed_veg A_fresh_potato A_potato_pro
+> duct A_fresh_meat A_processed_meat A_fresh_seafood A_processed_seafood A_eggs A_bread A_dairy_product A_wheat_pr
+> oduct A_grain_product
+
+. 
+. display "=== Expenditure Summary ==="
+=== Expenditure Summary ===
+
+. foreach var of local expenditure_list {
+  2.     quietly summarize `var', detail
+  3.     display "Mean of `var' (all): " r(mean)
+  4.     display "SD of `var' (all): " r(sd)
+  5.         
+.     quietly summarize `var' if low==1, detail
+  6.     display "Mean of `var' (low): " r(mean)
+  7.     display "SD of `var' (low):   " r(sd)
+  8. 
+.     quietly summarize `var' if mid==1, detail
+  9.     display "Mean of `var' (mid): " r(mean)
+ 10.     display "SD of `var' (mid):   " r(sd)
+ 11. 
+.     quietly summarize `var' if high==1, detail
+ 12.     display "Mean of `var' (high): " r(mean)
+ 13.     display "SD of `var' (high):   " r(sd)
+ 14. }
+Mean of A_fresh_fruits (all): 23.950512
+SD of A_fresh_fruits (all): 29.855215
+Mean of A_fresh_fruits (low): 20.044427
+SD of A_fresh_fruits (low):   25.121045
+Mean of A_fresh_fruits (mid): 24.799077
+SD of A_fresh_fruits (mid):   27.044132
+Mean of A_fresh_fruits (high): 26.158795
+SD of A_fresh_fruits (high):   38.08953
+Mean of A_processed_fruits (all): 8.3523202
+SD of A_processed_fruits (all): 11.723346
+Mean of A_processed_fruits (low): 6.8424693
+SD of A_processed_fruits (low):   11.991682
+Mean of A_processed_fruits (mid): 8.5397504
+SD of A_processed_fruits (mid):   11.25284
+Mean of A_processed_fruits (high): 9.4871621
+SD of A_processed_fruits (high):   12.213793
+Mean of A_fresh_veg (all): 22.052065
+SD of A_fresh_veg (all): 20.024356
+Mean of A_fresh_veg (low): 18.796901
+SD of A_fresh_veg (low):   16.612472
+Mean of A_fresh_veg (mid): 22.809661
+SD of A_fresh_veg (mid):   20.503536
+Mean of A_fresh_veg (high): 23.791435
+SD of A_fresh_veg (high):   21.740614
+Mean of A_processed_veg (all): 7.1017713
+SD of A_processed_veg (all): 8.8646697
+Mean of A_processed_veg (low): 6.8234166
+SD of A_processed_veg (low):   8.9439587
+Mean of A_processed_veg (mid): 7.2821018
+SD of A_processed_veg (mid):   8.7803809
+Mean of A_processed_veg (high): 7.0193222
+SD of A_processed_veg (high):   8.9476023
+Mean of A_fresh_potato (all): 3.0951456
+SD of A_fresh_potato (all): 4.3242794
+Mean of A_fresh_potato (low): 3.0999128
+SD of A_fresh_potato (low):   3.9035023
+Mean of A_fresh_potato (mid): 3.2842967
+SD of A_fresh_potato (mid):   4.6018138
+Mean of A_fresh_potato (high): 2.7119263
+SD of A_fresh_potato (high):   4.1231286
+Mean of A_potato_product (all): 3.1765267
+SD of A_potato_product (all): 4.5832159
+Mean of A_potato_product (low): 3.384352
+SD of A_potato_product (low):   4.7103351
+Mean of A_potato_product (mid): 3.3342136
+SD of A_potato_product (mid):   4.7511907
+Mean of A_potato_product (high): 2.6532025
+SD of A_potato_product (high):   4.0418348
+Mean of A_fresh_meat (all): 19.342431
+SD of A_fresh_meat (all): 26.185097
+Mean of A_fresh_meat (low): 17.73614
+SD of A_fresh_meat (low):   24.813432
+Mean of A_fresh_meat (mid): 20.244584
+SD of A_fresh_meat (mid):   27.067607
+Mean of A_fresh_meat (high): 19.143702
+SD of A_fresh_meat (high):   25.648748
+Mean of A_processed_meat (all): 34.461149
+SD of A_processed_meat (all): 30.426406
+Mean of A_processed_meat (low): 30.927103
+SD of A_processed_meat (low):   28.441259
+Mean of A_processed_meat (mid): 36.799717
+SD of A_processed_meat (mid):   31.096112
+Mean of A_processed_meat (high): 33.316207
+SD of A_processed_meat (high):   30.596665
+Mean of A_fresh_seafood (all): 3.4243877
+SD of A_fresh_seafood (all): 9.547426
+Mean of A_fresh_seafood (low): 2.4189695
+SD of A_fresh_seafood (low):   6.6405949
+Mean of A_fresh_seafood (mid): 3.5492769
+SD of A_fresh_seafood (mid):   10.336458
+Mean of A_fresh_seafood (high): 4.1799286
+SD of A_fresh_seafood (high):   10.260176
+Mean of A_processed_seafood (all): 6.9466525
+SD of A_processed_seafood (all): 10.171878
+Mean of A_processed_seafood (low): 5.9473325
+SD of A_processed_seafood (low):   8.5571939
+Mean of A_processed_seafood (mid): 7.3173316
+SD of A_processed_seafood (mid):   10.564224
+Mean of A_processed_seafood (high): 7.2043202
+SD of A_processed_seafood (high):   10.778177
+Mean of A_eggs (all): 4.7667446
+SD of A_eggs (all): 5.1854327
+Mean of A_eggs (low): 4.4119302
+SD of A_eggs (low):   4.9018289
+Mean of A_eggs (mid): 4.9825257
+SD of A_eggs (mid):   5.0973355
+Mean of A_eggs (high): 4.6898256
+SD of A_eggs (high):   5.5998754
+Mean of A_bread (all): 9.742128
+SD of A_bread (all): 9.4304811
+Mean of A_bread (low): 8.6753706
+SD of A_bread (low):   8.9805558
+Mean of A_bread (mid): 10.186486
+SD of A_bread (mid):   9.723293
+Mean of A_bread (high): 9.9198177
+SD of A_bread (high):   9.1923494
+Mean of A_dairy_product (all): 45.07782
+SD of A_dairy_product (all): 30.043692
+Mean of A_dairy_product (low): 41.345375
+SD of A_dairy_product (low):   29.347967
+Mean of A_dairy_product (mid): 47.04751
+SD of A_dairy_product (mid):   30.584563
+Mean of A_dairy_product (high): 44.869322
+SD of A_dairy_product (high):   29.279527
+Mean of A_wheat_product (all): 28.236554
+SD of A_wheat_product (all): 24.583727
+Mean of A_wheat_product (low): 25.544312
+SD of A_wheat_product (low):   22.598168
+Mean of A_wheat_product (mid): 29.810026
+SD of A_wheat_product (mid):   25.353955
+Mean of A_wheat_product (high): 27.780606
+SD of A_wheat_product (high):   24.680645
+Mean of A_grain_product (all): 6.8776659
+SD of A_grain_product (all): 9.0379536
+Mean of A_grain_product (low): 6.8935077
+SD of A_grain_product (low):   8.8010475
+Mean of A_grain_product (mid): 7.178746
+SD of A_grain_product (mid):   9.6130776
+Mean of A_grain_product (high): 6.2594253
+SD of A_grain_product (high):   7.9965876
+
+. 
+. *6.5 expenditure shares
+. local share_var W1 W2 W3 W4 W5 W6 W7 W8 W9 W10 W11 W12 W13 W14 W15
+
+. 
+. display "=== Expenditure Shares Summary ==="
+=== Expenditure Shares Summary ===
+
+. foreach var of local share_var {
+  2.     quietly summarize `var', detail
+  3.     display "Mean of `var' (all): " r(mean)
+  4.     display "SD of `var' (all): " r(sd)
+  5. 
+.     quietly summarize `var' if low==1, detail
+  6.     display "Mean of `var' (low): " r(mean)
+  7.     display "SD of `var' (low):   " r(sd)
+  8.         
+.     quietly summarize `var' if mid==1, detail
+  9.     display "Mean of `var' (mid): " r(mean)
+ 10.     display "SD of `var' (mid):   " r(sd)
+ 11. 
+.     quietly summarize `var' if high==1, detail
+ 12.     display "Mean of `var' (high): " r(mean)
+ 13.     display "SD of `var' (high):   " r(sd)
+ 14. }
+Mean of W1 (all): .10303647
+SD of W1 (all): .08030832
+Mean of W1 (low): .09697878
+SD of W1 (low):   .07931427
+Mean of W1 (mid): .10311159
+SD of W1 (mid):   .07770784
+Mean of W1 (high): .10894386
+SD of W1 (high):   .08581318
+Mean of W2 (all): .0365179
+SD of W2 (all): .04127262
+Mean of W2 (low): .0328505
+SD of W2 (low):   .03887944
+Mean of W2 (mid): .03598214
+SD of W2 (mid):   .03950989
+Mean of W2 (high): .04125725
+SD of W2 (high):   .04631482
+Mean of W3 (all): .09683797
+SD of W3 (all): .06350498
+Mean of W3 (low): .09381036
+SD of W3 (low):   .06260811
+Mean of W3 (mid): .09594261
+SD of W3 (mid):   .06179864
+Mean of W3 (high): .101657
+SD of W3 (high):   .06740219
+Mean of W4 (all): .03186839
+SD of W4 (all): .03615749
+Mean of W4 (low): .03418463
+SD of W4 (low):   .04049246
+Mean of W4 (mid): .03110746
+SD of W4 (mid):   .03427135
+Mean of W4 (high): .03107462
+SD of W4 (high):   .03513976
+Mean of W5 (all): .01402407
+SD of W5 (all): .01748691
+Mean of W5 (low): .01629241
+SD of W5 (low):   .01944228
+Mean of W5 (mid): .01425625
+SD of W5 (mid):   .01755786
+Mean of W5 (high): .0112912
+SD of W5 (high):   .01470105
+Mean of W6 (all): .01490744
+SD of W6 (all): .02150312
+Mean of W6 (low): .01738935
+SD of W6 (low):   .02505696
+Mean of W6 (mid): .01473339
+SD of W6 (mid):   .02039486
+Mean of W6 (high): .01277378
+SD of W6 (high):   .01947894
+Mean of W7 (all): .07819437
+SD of W7 (all): .07814652
+Mean of W7 (low): .08004046
+SD of W7 (low):   .07951833
+Mean of W7 (mid): .079012
+SD of W7 (mid):   .07747158
+Mean of W7 (high): .07471237
+SD of W7 (high):   .07803045
+Mean of W8 (all): .15043591
+SD of W8 (all): .09755171
+Mean of W8 (low): .14996444
+SD of W8 (low):   .09787803
+Mean of W8 (mid): .1538248
+SD of W8 (mid):   .09611525
+Mean of W8 (high): .14412693
+SD of W8 (high):   .09976875
+Mean of W9 (all): .01302445
+SD of W9 (all): .02983875
+Mean of W9 (low): .01046598
+SD of W9 (low):   .02680478
+Mean of W9 (mid): .01297678
+SD of W9 (mid):   .02895165
+Mean of W9 (high): .01567829
+SD of W9 (high):   .03396589
+Mean of W10 (all): .03074165
+SD of W10 (all): .04020567
+Mean of W10 (low): .0295679
+SD of W10 (low):   .03864047
+Mean of W10 (mid): .03103815
+SD of W10 (mid):   .03962115
+Mean of W10 (high): .03132214
+SD of W10 (high):   .04280971
+Mean of W11 (all): .02165842
+SD of W11 (all): .02068333
+Mean of W11 (low): .02212823
+SD of W11 (low):   .02052545
+Mean of W11 (mid): .02179866
+SD of W11 (mid):   .02040937
+Mean of W11 (high): .02090801
+SD of W11 (high):   .02136237
+Mean of W12 (all): .04551385
+SD of W12 (all): .03911865
+Mean of W12 (low): .04513329
+SD of W12 (low):   .04082106
+Mean of W12 (mid): .04514367
+SD of W12 (mid):   .0375404
+Mean of W12 (high): .04663509
+SD of W12 (high):   .04044545
+Mean of W13 (all): .2055903
+SD of W13 (all): .08283572
+Mean of W13 (low): .2089336
+SD of W13 (low):   .08728688
+Mean of W13 (mid): .20424392
+SD of W13 (mid):   .07956142
+Mean of W13 (high): .20494081
+SD of W13 (high):   .08460984
+Mean of W14 (all): .12644495
+SD of W14 (all): .08302205
+Mean of W14 (low): .12720205
+SD of W14 (low):   .08178272
+Mean of W14 (mid): .12619939
+SD of W14 (mid):   .0798323
+Mean of W14 (high): .12617919
+SD of W14 (high):   .09022834
+Mean of W15 (all): .03120384
+SD of W15 (all): .03783491
+Mean of W15 (low): .03505801
+SD of W15 (low):   .04283899
+Mean of W15 (mid): .03062918
+SD of W15 (mid):   .03687595
+Mean of W15 (high): .02849947
+SD of W15 (high):   .03390358
+
+. 
+. *6.6 % of consumption
+. display "=== Consumption Percentage Summary ==="
+=== Consumption Percentage Summary ===
+
+. foreach var of local share_var {
+  2.     * Overall consumption percentage
+.     quietly count if `var' > 0
+  3.     local num_consuming = r(N)
+  4.     quietly count
+  5.     local total_obs = r(N)
+  6.     display "Percentage of `var' > 0 (all): " 100 * `num_consuming' / `total_obs'
+  7. 
+.     * Low-income group
+.     quietly count if low == 1 & `var' > 0
+  8.     local num_consuming_low = r(N)
+  9.     quietly count if low == 1
+ 10.     local total_low = r(N)
+ 11.     if `total_low' > 0 {
+ 12.         display "Percentage of `var' > 0 (low): " 100 * `num_consuming_low' / `total_low' " if low==1"
+ 13.     }
+ 14.     else {
+ 15.         display "No observations in low-income group"
+ 16.     }
+ 17. 
+.     * Mid-income group
+.     quietly count if mid == 1 & `var' > 0
+ 18.     local num_consuming_mid = r(N)
+ 19.     quietly count if mid == 1
+ 20.     local total_mid = r(N)
+ 21.     if `total_mid' > 0 {
+ 22.         display "Percentage of `var' > 0 (mid): " 100 * `num_consuming_mid' / `total_mid' " if mid==1"
+ 23.     }
+ 24.     else {
+ 25.         display "No observations in mid-income group"
+ 26.     }
+ 27. 
+.     * High-income group
+.     quietly count if high == 1 & `var' > 0
+ 28.     local num_consuming_high = r(N)
+ 29.     quietly count if high == 1
+ 30.     local total_high = r(N)
+ 31.     if `total_high' > 0 {
+ 32.         display "Percentage of `var' > 0 (high): " 100 * `num_consuming_high' / `total_high' " if high==1"
+ 33.     }
+ 34.     else {
+ 35.         display "No observations in high-income group"
+ 36.     }
+ 37. }
+Percentage of W1 > 0 (all): 95.482465
+Percentage of W1 > 0 (low): 93.935791 if low==1
+Percentage of W1 > 0 (mid): 96.275753 if mid==1
+Percentage of W1 > 0 (high): 95.441934 if high==1
+Percentage of W2 > 0 (all): 81.910046
+Percentage of W2 > 0 (low): 78.834721 if low==1
+Percentage of W2 > 0 (mid): 83.280507 if mid==1
+Percentage of W2 > 0 (high): 82.243361 if high==1
+Percentage of W3 > 0 (all): 97.107192
+Percentage of W3 > 0 (low): 96.512089 if low==1
+Percentage of W3 > 0 (mid): 97.801109 if mid==1
+Percentage of W3 > 0 (high): 96.313912 if high==1
+Percentage of W4 > 0 (all): 86.487022
+Percentage of W4 > 0 (low): 86.563615 if low==1
+Percentage of W4 > 0 (mid): 87.400951 if mid==1
+Percentage of W4 > 0 (high): 84.581847 if high==1
+Percentage of W5 > 0 (all): 67.020012
+Percentage of W5 > 0 (low): 69.322235 if low==1
+Percentage of W5 > 0 (mid): 68.878764 if mid==1
+Percentage of W5 > 0 (high): 60.998811 if high==1
+Percentage of W6 > 0 (all): 63.562512
+Percentage of W6 > 0 (low): 67.419738 if low==1
+Percentage of W6 > 0 (mid): 64.580032 if mid==1
+Percentage of W6 > 0 (high): 57.669441 if high==1
+Percentage of W7 > 0 (all): 80.007926
+Percentage of W7 > 0 (low): 79.429251 if low==1
+Percentage of W7 > 0 (mid): 82.032488 if mid==1
+Percentage of W7 > 0 (high): 76.53587 if high==1
+Percentage of W8 > 0 (all): 94.997028
+Percentage of W8 > 0 (low): 93.618708 if low==1
+Percentage of W8 > 0 (mid): 95.701268 if mid==1
+Percentage of W8 > 0 (high): 94.96631 if high==1
+Percentage of W9 > 0 (all): 31.236378
+Percentage of W9 > 0 (low): 27.031312 if low==1
+Percentage of W9 > 0 (mid): 32.230586 if mid==1
+Percentage of W9 > 0 (high): 33.452239 if high==1
+Percentage of W10 > 0 (all): 70.051516
+Percentage of W10 > 0 (low): 68.727705 if low==1
+Percentage of W10 > 0 (mid): 72.087956 if mid==1
+Percentage of W10 > 0 (high): 67.300832 if high==1
+Percentage of W11 > 0 (all): 80.988706
+Percentage of W11 > 0 (low): 79.508522 if low==1
+Percentage of W11 > 0 (mid): 82.408875 if mid==1
+Percentage of W11 > 0 (high): 79.627428 if high==1
+Percentage of W12 > 0 (all): 90.826233
+Percentage of W12 > 0 (low): 90.368609 if low==1
+Percentage of W12 > 0 (mid): 91.699683 if mid==1
+Percentage of W12 > 0 (high): 89.536266 if high==1
+Percentage of W13 > 0 (all): 99.752328
+Percentage of W13 > 0 (low): 99.564011 if low==1
+Percentage of W13 > 0 (mid): 99.821712 if mid==1
+Percentage of W13 > 0 (high): 99.801823 if high==1
+Percentage of W14 > 0 (all): 98.494155
+Percentage of W14 > 0 (low): 98.097503 if low==1
+Percentage of W14 > 0 (mid): 98.91046 if mid==1
+Percentage of W14 > 0 (high): 98.057868 if high==1
+Percentage of W15 > 0 (all): 83.782445
+Percentage of W15 > 0 (low): 85.572731 if low==1
+Percentage of W15 > 0 (mid): 84.548336 if mid==1
+Percentage of W15 > 0 (high): 80.45977 if high==1
+
+. 
+. *6.7 net monthly income
+. display "=== Net Monthly Income Summary ==="
+=== Net Monthly Income Summary ===
+
+. sum monthly if low == 1 
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     monthly |      2,523    2146.043     1309.86  -593.6667   8468.667
+
+. sum monthly if mid == 1
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     monthly |      5,048    3843.708    1897.656       1220   11951.33
+
+. sum monthly if high == 1
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     monthly |      2,523    6378.742    4292.591       2530   59632.33
+
+. 
+. 
+. **# Write output #6
+. 
+. *1. median without quality-adjusted
+. 
+. *1.1 all household
+. preserve
+
+. keep EF2 urban spring summer autumn winter EF7 children EF29 monthly EF8U2 age EF8U4 edu employ med_P1 med_P2 me
+> d_P3 med_P4 med_P5 med_P6 med_P7 med_P8 med_P9 med_P10 med_P11 med_P12 med_P13 med_P14 med_P15 W1-W15 expfd
+
+. save "$path\Median\median_all.dta", replace
+file C:\Users\Chung\Desktop\EVS\Median\median_all.dta saved
+
+. restore
+
+. 
+. *1.2 low-income
+. preserve
+
+. keep if low == 1  // Keep only observations where low == 1
+(7,571 observations deleted)
+
+. keep EF2 urban spring summer autumn winter EF7 children EF29 monthly EF8U2 age EF8U4 edu employ med_P1 med_P2 me
+> d_P3 med_P4 med_P5 med_P6 med_P7 med_P8 med_P9 med_P10 med_P11 med_P12 med_P13 med_P14 med_P15 W1-W15 expfd
+
+. save "$path\Median\Low\median_low.dta", replace 
+file C:\Users\Chung\Desktop\EVS\Median\Low\median_low.dta saved
+
+. restore
+
+. 
+. *1.3 middle-income
+. preserve
+
+. keep if mid == 1  // Keep only observations where mid == 1
+(5,046 observations deleted)
+
+. keep EF2 urban spring summer autumn winter EF7 children EF29 monthly EF8U2 age EF8U4 edu employ med_P1 med_P2 me
+> d_P3 med_P4 med_P5 med_P6 med_P7 med_P8 med_P9 med_P10 med_P11 med_P12 med_P13 med_P14 med_P15 W1-W15 expfd
+
+. save "$path\Median\Mid\median_mid.dta", replace 
+file C:\Users\Chung\Desktop\EVS\Median\Mid\median_mid.dta saved
+
+. restore
+
+. 
+. *1.4 high-income
+. preserve
+
+. keep if high == 1  // Keep only observations where high == 1
+(7,571 observations deleted)
+
+. keep EF2 urban spring summer autumn winter EF7 children EF29 monthly EF8U2 age EF8U4 edu employ med_P1 med_P2 me
+> d_P3 med_P4 med_P5 med_P6 med_P7 med_P8 med_P9 med_P10 med_P11 med_P12 med_P13 med_P14 med_P15 W1-W15 expfd
+
+. save "$path\Median\High\median_high.dta", replace 
+file C:\Users\Chung\Desktop\EVS\Median\High\median_high.dta saved
+
+. restore
+
+. 
+. *2. median with quality-adjusted
+. 
+. *2.1 all household
+. preserve
+
+. keep EF2 urban spring summer autumn winter EF7 children EF29 monthly EF8U2 age EF8U4 edu employ adj_P1 adj_P2 ad
+> j_P3 adj_P4 adj_P5 adj_P6 adj_P7 adj_P8 adj_P9 adj_P10 adj_P11 adj_P12 adj_P13 adj_P14 adj_P15 W1-W1 expfd
+
+. save "$path\Adj_med\adj_med_all.dta", replace
+file C:\Users\Chung\Desktop\EVS\Adj_med\adj_med_all.dta saved
+
+. restore
+
+. 
+. *2.2 low-income
+. preserve
+
+. keep if low == 1  // Keep only observations where low == 1
+(7,571 observations deleted)
+
+. keep EF2 urban spring summer autumn winter EF7 children EF29 monthly EF8U2 age EF8U4 edu employ adj_P1 adj_P2 ad
+> j_P3 adj_P4 adj_P5 adj_P6 adj_P7 adj_P8 adj_P9 adj_P10 adj_P11 adj_P12 adj_P13 adj_P14 adj_P15 W1-W15 expfd
+
+. save "$path\Adj_med\Low\adj_med_low.dta", replace 
+file C:\Users\Chung\Desktop\EVS\Adj_med\Low\adj_med_low.dta saved
+
+. restore
+
+. 
+. *2.3 middle-income
+. preserve
+
+. keep if mid == 1  // Keep only observations where mid == 1
+(5,046 observations deleted)
+
+. keep EF2 urban spring summer autumn winter EF7 children EF29 monthly EF8U2 age EF8U4 edu employ adj_P1 adj_P2 ad
+> j_P3 adj_P4 adj_P5 adj_P6 adj_P7 adj_P8 adj_P9 adj_P10 adj_P11 adj_P12 adj_P13 adj_P14 adj_P15 W1-W15 expfd
+
+. save "$path\Adj_med\Mid\adj_med_mid.dta", replace 
+file C:\Users\Chung\Desktop\EVS\Adj_med\Mid\adj_med_mid.dta saved
+
+. restore
+
+. 
+. *2.4 high-income
+. preserve
+
+. keep if high == 1  // Keep only observations where high == 1
+(7,571 observations deleted)
+
+. keep EF2 urban spring summer autumn winter EF7 children EF29 monthly EF8U2 age EF8U4 edu employ adj_P1 adj_P2 ad
+> j_P3 adj_P4 adj_P5 adj_P6 adj_P7 adj_P8 adj_P9 adj_P10 adj_P11 adj_P12 adj_P13 adj_P14 adj_P15 W1-W15 expfd
+
+. save "$path\Adj_med\High\adj_med_high.dta", replace 
+file C:\Users\Chung\Desktop\EVS\Adj_med\High\adj_med_high.dta saved
+
+. restore
+
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\Chung\Desktop\EVS\EVS_median.log
+  log type:  text
+ closed on:  26 Jan 2025, 23:27:21
+------------------------------------------------------------------------------------------------------------------
